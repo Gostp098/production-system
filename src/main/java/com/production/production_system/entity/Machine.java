@@ -6,8 +6,6 @@ import java.time.LocalDate;
 
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Machine {
 
     @Id
@@ -15,8 +13,6 @@ public class Machine {
     private Long id;
 
     private String nom;
-
-    private String etat; // ACTIVE, PANNE...
-
+    private String etat;
     private LocalDate maintenanceProchaine;
 }

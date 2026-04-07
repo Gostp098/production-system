@@ -1,13 +1,11 @@
 package com.production.production_system.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import java.time.LocalDate;
+import lombok.Data;
 
+import java.time.LocalDate;
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Maintenance {
 
     @Id
@@ -15,14 +13,11 @@ public class Maintenance {
     private Long id;
 
     private LocalDate date;
-
-    private String type; // PREVENTIVE, CORRECTIVE
+    private String type;
 
     @ManyToOne
-    @JoinColumn(name = "machine_id")
     private Machine machine;
 
     @ManyToOne
-    @JoinColumn(name = "technicien_id")
     private Technicien technicien;
 }

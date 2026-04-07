@@ -29,6 +29,11 @@ public class ProduitController {
         return produitService.findById(id);
     }
 
+    @PutMapping("/{id}")
+    public Produit update(@PathVariable Long id, @RequestBody Produit produit) {
+        return produitService.update(id, produit);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         produitService.delete(id);

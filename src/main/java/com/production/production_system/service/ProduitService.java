@@ -26,7 +26,20 @@ public class ProduitService {
                 .orElseThrow(() -> new RuntimeException("Produit not found"));
     }
 
-    public void delete(Long id) {
-        produitRepository.deleteById(id);
+    public Produit update(Long id, Produit produit) {
+        Produit existing = findById(id);
+
+        existing.setNom(produit.getNom());
+        existing.setType(produit.getType());
+        existing.setStock(produit.getStock());
+        existing.setFournisseur(produit.getFournisseur());
+
+        return produitRepository.save(existing);
     }
-}
+
+    public void delete(Long id) {
+        if (!produitRepository.existsById(id)) {
+            throw new RuntimeException("Produit not found");
+        }
+        produitRepository.deleteById(id);
+    }}
