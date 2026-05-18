@@ -1,64 +1,92 @@
 package com.production.production_system.service;
 
+import com.production.production_system.mapper.TechnicienConverter;
+import com.production.production_system.dto.TechnicienDTO;
 import com.production.production_system.entity.Machine;
 import com.production.production_system.entity.Technicien;
 import com.production.production_system.repository.MachineRepository;
 import com.production.production_system.repository.TechnicienRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TechnicienService {
 
     private final TechnicienRepository technicienRepository;
     private final MachineRepository machineRepository;
+    private final TechnicienConverter technicienConverter;
 
-    // CREATE
-    public Technicien create(Technicien technicien) {
-        return technicienRepository.save(technicien);
+    public List<TechnicienDTO> getAll() {
+        return technicienRepository.findAll()
+                .stream()
+                .map(technicienConverter::toDto)
+                .toList();
     }
 
-    // READ ALL
-    public List<Technicien> getAll() {
-        return technicienRepository.findAll();
-    }
-
-    // READ BY ID
-    public Technicien getById(Long id) {
+    public Optional<TechnicienDTO> getById(Long id) {
         return technicienRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Technicien not found"));
+                .map(technicienConverter::toDto);
     }
 
-    // UPDATE
-    public Technicien update(Long id, Technicien technicien) {
-        Technicien existing = getById(id);
-        existing.setNom(technicien.getNom());
-        existing.setCompetences(technicien.getCompetences());
+    public List<TechnicienDTO> findByCompetence(String competence) {
+        return technicienRepository.findByCompetencesContainingIgnoreCase(competence)
+                .stream()
+                .map(technicienConverter::toDto)
+                .toList();
+    }
 
-        if (technicien.getMachineAssignee() != null) {
-            Machine machine = machineRepository.findById(technicien.getMachineAssignee().getId())
-                    .orElseThrow(() -> new RuntimeException("Machine not found"));
-            existing.setMachineAssignee(machine);
+    @Transactional
+    public TechnicienDTO create(TechnicienDTO dto) {
+        Technicien technicien = technicienConverter.toEntity(dto);
+        if (dto.getMachineAssigneeId() != null) {
+            Machine machine = machineRepository.findById(dto.getMachineAssigneeId()).orElse(null);
+            technicien.setMachineAssignee(machine);
         }
-
-        return technicienRepository.save(existing);
+        return technicienConverter.toDto(technicienRepository.save(technicien));
     }
 
-    // DELETE
-    public void delete(Long id) {
+    @Transactional
+    public Optional<TechnicienDTO> update(Long id, TechnicienDTO dto) {
+        return technicienRepository.findById(id).map(existing -> {
+            existing.setNom(dto.getNom());
+            existing.setCompetences(dto.getCompetences());
+            if (dto.getMachineAssigneeId() != null) {
+                Machine machine = machineRepository.findById(dto.getMachineAssigneeId()).orElse(null);
+                existing.setMachineAssignee(machine);
+            } else {
+                existing.setMachineAssignee(null);
+            }
+            return technicienConverter.toDto(technicienRepository.save(existing));
+        });
+    }
+
+    @Transactional
+    public boolean delete(Long id) {
+        if (!technicienRepository.existsById(id)) return false;
         technicienRepository.deleteById(id);
+        return true;
     }
 
-    // ASSIGN MACHINE
-    public Technicien assignMachine(Long technicienId, Long machineId) {
-        Technicien technicien = getById(technicienId);
-        Machine machine = machineRepository.findById(machineId)
-                .orElseThrow(() -> new RuntimeException("Machine not found"));
+    @Transactional
+    public Optional<TechnicienDTO> assignMachine(Long technicienId, Long machineId) {
+        return technicienRepository.findById(technicienId).map(technicien -> {
+            Machine machine = machineRepository.findById(machineId).orElse(null);
+            technicien.setMachineAssignee(machine);
+            return technicienConverter.toDto(technicienRepository.save(technicien));
+        });
+    }
 
-        technicien.setMachineAssignee(machine);
-        return technicienRepository.save(technicien);
+    @Transactional
+    public Optional<TechnicienDTO> unassignMachine(Long technicienId) {
+        return technicienRepository.findById(technicienId).map(technicien -> {
+            technicien.setMachineAssignee(null);
+            return technicienConverter.toDto(technicienRepository.save(technicien));
+        });
     }
 }

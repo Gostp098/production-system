@@ -1,12 +1,10 @@
 package com.production.production_system.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Technicien {
 
     @Id
@@ -14,7 +12,6 @@ public class Technicien {
     private Long id;
 
     private String nom;
-
     private String competences;
 
     @ManyToOne

@@ -2,8 +2,8 @@ package com.production.production_system.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDate;
+
 @Entity
 @Data
 public class Maintenance {
@@ -16,8 +16,10 @@ public class Maintenance {
     private String type;
 
     @ManyToOne
+    @JoinColumn(name = "machine_id")
     private Machine machine;
 
     @ManyToOne
+    @JoinColumn(name = "technicien_id")
     private Technicien technicien;
 }
